@@ -1,0 +1,9 @@
+/* 
+  Localizable.strings
+  ImageARApp
+
+  Created by Kenichi on R 7/02/04.
+  
+*/
+"KEY_TITLE1" = "This app is an AR app.\nSelect an image\nTap the icon to start!";
+

@@ -74,7 +74,7 @@ struct ContentView: View {
                         Spacer()
                         // 吹き出しを中央のボタンと広告の間に配置
                         if showExplanation {
-                            Text("このアプリARアプリです。\n画像を選択したらすぐARに！\nアイコンをタップしてスタート！")
+                            Text("KEY_TITLE1")
                                 .font(.headline)
                                 .padding()
                                 .background(Color.white)
