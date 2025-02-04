@@ -15,56 +15,96 @@ struct ContentView: View {
     @State private var images: [UIImage] = []
     @State private var selectedImage: PhotosPickerItem? = nil
     @State private var showARScreen = false
+    @State private var showExplanation = false // 吹き出しを表示するための変数
 
     var body: some View {
         NavigationStack { // ✅ NavigationView → NavigationStack に変更
-            VStack {
-                PhotosPicker(selection: $selectedImage, matching: .images, photoLibrary: .shared()) {
-                    VStack{
-                        Spacer()
-                        Image("icon")
-                            .resizable()
-                            .frame(width: 60, height: 60)
-                            .cornerRadius(10)
-                        Text("ImageAR")
-                            .background(Color.white.opacity(0.3))
-                            .foregroundStyle(.black)
-                            .cornerRadius(10)
-                        Spacer()
-                 
+            ZStack{
+                VStack {
+                    PhotosPicker(selection: $selectedImage, matching: .images, photoLibrary: .shared()) {
+                        VStack{
+                            Spacer()
+                            Image("icon")
+                                .resizable()
+                                .frame(width: 150, height: 150)
+                                .cornerRadius(10)
+                            Text("ImageAR")
+                                .background(Color.white.opacity(0.3))
+                                .foregroundStyle(.black)
+                                .cornerRadius(10)
+                            Spacer()
+                     
+                        }
+                        .zIndex(-1) // 最前面に配置（吹き出しや広告より上）
+                        .onAppear {
+                                checkPermissions()
+                               }
+                               .alert(isPresented: $showPermissionAlert) {
+                                   Alert(title: Text("権限が必要です"),
+                                         message: Text(permissionMessage),
+                                         dismissButton: .default(Text("OK")))
+                               }
                     }
-                    .onAppear {
-                            checkPermissions()
-                           }
-                           .alert(isPresented: $showPermissionAlert) {
-                               Alert(title: Text("権限が必要です"),
-                                     message: Text(permissionMessage),
-                                     dismissButton: .default(Text("OK")))
-                           }
-                }
-                .onChange(of: selectedImage) { oldValue, newValue in
-                    if let selectedItem = newValue {
-                        selectedItem.loadTransferable(type: Data.self) { result in
-                            switch result {
-                            case .success(let data?):
-                                if let uiImage = UIImage(data: data) {
-                                    self.images = [uiImage]
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { // ✅ 少し遅らせて遷移を安定させる
-                                        self.showARScreen = true
+                    .onChange(of: selectedImage) { oldValue, newValue in
+                        if let selectedItem = newValue {
+                            selectedItem.loadTransferable(type: Data.self) { result in
+                                switch result {
+                                case .success(let data?):
+                                    if let uiImage = UIImage(data: data) {
+                                        self.images = [uiImage]
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { // ✅ 少し遅らせて遷移を安定させる
+                                            self.showARScreen = true
+                                        }
                                     }
+                                case .failure(let error):
+                                    print("画像読み込み失敗: \(error)")
+                                default:
+                                    break
                                 }
-                            case .failure(let error):
-                                print("画像読み込み失敗: \(error)")
-                            default:
-                                break
                             }
                         }
                     }
                 }
-            }
-            // ✅ `NavigationStack` の直下に `navigationDestination` を配置
-            .navigationDestination(isPresented: $showARScreen) {
-                ARViewScreen(isPresented: $showARScreen, images: $images)
+                // ✅ `NavigationStack` の直下に `navigationDestination` を配置
+                .navigationDestination(isPresented: $showARScreen) {
+                    ARViewScreen(isPresented: $showARScreen, images: $images)
+                }
+                ZStack{
+                    VStack {
+                        Spacer()
+                        // 吹き出しを中央のボタンと広告の間に配置
+                        if showExplanation {
+                            Text("このアプリARアプリです。\n画像を選択したらすぐARに！\nアイコンをタップしてスタート！")
+                                .font(.headline)
+                                .padding()
+                                .background(Color.white)
+                                .cornerRadius(10)
+                                .shadow(radius: 10)
+                                .transition(.slide)
+                                .frame(maxWidth: .infinity, alignment: .center) // 吹き出し内で中央揃え
+                                .multilineTextAlignment(.center) // テキストを中央揃え
+                                .padding(.bottom, 20) // 広告との間にスペースを追加
+                        }
+                        
+                        Spacer() // 下部のスペースを確保
+                    }
+                    VStack{
+                        Spacer()
+                        HStack {
+                            Spacer()
+                            Button(action: {
+                                withAnimation {
+                                    self.showExplanation.toggle() // 吹き出しの表示/非表示を切り替え
+                                }
+                            }) {
+                                Image(systemName: "questionmark.circle.fill")
+                                    .font(.system(size: 50)) // ボタンのサイズを大きくする
+                                    .foregroundColor(.black)
+                                    .padding()
+                            }
+                        }
+                    }
+                }
             }
         }
     }
