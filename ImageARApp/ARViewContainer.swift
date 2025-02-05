@@ -188,8 +188,8 @@ struct ARViewContainer: UIViewRepresentable {
                     if let firstResult = hitTestResults.first {
                         let worldTransform = firstResult.worldTransform
                         lastPanPosition = SIMD3<Float>(
-                            (lastPanPosition!.x + worldTransform.columns.3.x) / 2, // ✅ 前回の値と平均を取る
-                            (lastPanPosition!.y + worldTransform.columns.3.y) / 2, // ✅ Y軸の急激な変化を抑える
+                            (lastPanPosition!.x + worldTransform.columns.3.x) / 3, // ✅ 前回の値と平均を取る
+                            (lastPanPosition!.y + worldTransform.columns.3.y) / 3, // ✅ Y軸の急激な変化を抑える
                             initialPos.z
                         )
                     } else {
@@ -199,14 +199,14 @@ struct ARViewContainer: UIViewRepresentable {
             case .changed:
                 if isDragging, let lastPosition = lastPanPosition {
                     let newPosition = SIMD3<Float>(
-                        lastPosition.x + Float(translation.x) * 0.0008,  // ✅ X軸移動
-                        lastPosition.y - Float(translation.y) * 0.0008,  // ✅ Y軸も移動できるように修正
+                        lastPosition.x + Float(translation.x) * 0.002,  // ✅ X軸移動
+                        lastPosition.y - Float(translation.y) * 0.003,  // ✅ Y軸も移動できるように修正
                         initialPos.z // ✅ Z軸を固定
                     )
 
                     // ✅ 急激な変化を防ぐスムージング
                     // ✅ スムージングを距離に応じて調整
-                    let smoothingFactor: Float = distance(lastPanPosition!, newPosition) > 0.05 ? 6.0 : 4.0
+                    let smoothingFactor: Float = distance(lastPanPosition!, newPosition) > 0.1 ? 8.0 : 4.0
                     let smoothedPosition = SIMD3<Float>(
                         (entity.position.x + newPosition.x) / smoothingFactor,
                         (entity.position.y + newPosition.y) / smoothingFactor,

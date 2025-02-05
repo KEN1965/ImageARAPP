@@ -10,9 +10,22 @@
 		BE68059C2D505391001D7B3A /* ImageARApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ImageARApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		BE4790C42D52ED89007BAE38 /* Exceptions for "ImageARApp" folder in "ImageARApp" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = BE68059B2D505391001D7B3A /* ImageARApp */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		BE68059E2D505391001D7B3A /* ImageARApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				BE4790C42D52ED89007BAE38 /* Exceptions for "ImageARApp" folder in "ImageARApp" target */,
+			);
 			path = ImageARApp;
 			sourceTree = "<group>";
 		};
@@ -259,6 +272,7 @@
 				DEVELOPMENT_TEAM = 87M4KMG4N4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ImageARApp/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = ImageAR;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				INFOPLIST_KEY_NSCameraUsageDescription = "アプリで写真を撮影するためにカメラのアクセスが必要です。";
@@ -296,6 +310,7 @@
 				DEVELOPMENT_TEAM = 87M4KMG4N4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ImageARApp/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = ImageAR;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				INFOPLIST_KEY_NSCameraUsageDescription = "アプリで写真を撮影するためにカメラのアクセスが必要です。";
