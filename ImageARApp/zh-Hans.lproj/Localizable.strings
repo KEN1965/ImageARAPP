@@ -5,4 +5,5 @@
   Created by Kenichi on R 7/02/04.
   
 */
-"KEY_TITLE1" = "这个应用程序是一个 AR 应用程序\n选择图像！\n点击图标开始！";
+"KEY_TITLE1" = "这个应用程序是一个 AR 应用程序.\n选择图像！\n点击图标开始！";
+"KEY_TITLE2" = "T您还可以放大、缩小和移动图像.\nPNG 照片可以有透明背景.\n\n享受AR！!";

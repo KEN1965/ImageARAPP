@@ -5,5 +5,6 @@
   Created by Kenichi on R 7/02/04.
   
 */
-"KEY_TITLE1" = "這個應用程式是一個 AR 應用程式\n選擇影像\n點擊圖標開始！";
+"KEY_TITLE1" = "這個應用程式是一個 AR 應用程式.\n選擇影像.\n點擊圖標開始！";
+"KEY_TITLE2" = "您也可以放大、縮小和移動影像.\nPNG 照片可以有透明背景.\n\n享受AR！!";
 

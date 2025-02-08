@@ -205,59 +205,52 @@ struct ARViewContainer: UIViewRepresentable {
 
         // ✅ **パンジェスチャーで画像を移動（Z軸を変更しないように修正）**
         @objc func handlePanGesture(_ gesture: UIPanGestureRecognizer) {
-            guard let arView = arView, let entity = trackedEntity, let initialPos = initialPosition else { return }
-            
-            let location = gesture.location(in: arView) // ✅ タップ位置を取得
-            let translation = gesture.translation(in: arView)
+            guard let arView = arView, let entity = trackedEntity else { return }
 
+            let location = gesture.location(in: arView)
+            
             switch gesture.state {
             case .began:
-                if let hitEntity = arView.entity(at: location), hitEntity == entity {
+                let hitTestResults = arView.raycast(from: location, allowing: .estimatedPlane, alignment: .any)
+                if let firstResult = hitTestResults.first {
                     isDragging = true
-                    lastPanPosition = entity.transform.translation
-
-                    // ✅ ワールド座標を取得（失敗時は lastPanPosition を維持）
+                    lastPanPosition = entity.position(relativeTo: nil)
+                    initialPosition = SIMD3<Float>(
+                        firstResult.worldTransform.columns.3.x,
+                        firstResult.worldTransform.columns.3.y,
+                        firstResult.worldTransform.columns.3.z
+                    )
+                }
+                
+            case .changed:
+                if isDragging {
                     let hitTestResults = arView.raycast(from: location, allowing: .estimatedPlane, alignment: .any)
                     if let firstResult = hitTestResults.first {
-                        let worldTransform = firstResult.worldTransform
-                        lastPanPosition = SIMD3<Float>(
-                            (lastPanPosition!.x + worldTransform.columns.3.x) / 3, // ✅ 前回の値と平均を取る
-                            (lastPanPosition!.y + worldTransform.columns.3.y) / 3, // ✅ Y軸の急激な変化を抑える
-                            initialPos.z
+                        // 指の位置をワールド座標に変換
+                        let worldPosition = SIMD3<Float>(
+                            firstResult.worldTransform.columns.3.x,
+                            firstResult.worldTransform.columns.3.y,
+                            firstResult.worldTransform.columns.3.z
                         )
-                    } else {
-                        print("⚠️ hitTestResults が取得できませんでした。前回の位置を維持します。")
+                        
+                        // スムージングを適用して自然な動きに
+                        let smoothedPosition = lerp(from: entity.position(relativeTo: nil), to: worldPosition, t: 0.2)
+                        entity.setPosition(smoothedPosition, relativeTo: nil)
                     }
                 }
-            case .changed:
-                if isDragging, let lastPosition = lastPanPosition {
-                    let newPosition = SIMD3<Float>(
-                        lastPosition.x + Float(translation.x) * 0.002,  // ✅ X軸移動
-                        lastPosition.y - Float(translation.y) * 0.003,  // ✅ Y軸も移動できるように修正
-                        initialPos.z // ✅ Z軸を固定
-                    )
-
-                    // ✅ 急激な変化を防ぐスムージング
-                    // ✅ スムージングを距離に応じて調整
-                    let smoothingFactor: Float = distance(lastPanPosition!, newPosition) > 0.1 ? 8.0 : 4.0
-                    let smoothedPosition = SIMD3<Float>(
-                        (entity.position.x + newPosition.x) / smoothingFactor,
-                        (entity.position.y + newPosition.y) / smoothingFactor,
-                        initialPos.z
-                    )
-
-
-                    entity.setPosition(smoothedPosition, relativeTo: nil)
-                }
+                
             case .ended, .cancelled:
                 isDragging = false
+                
             default:
                 break
             }
         }
-        func distance(_ a: SIMD3<Float>, _ b: SIMD3<Float>) -> Float {
-            return sqrt(pow(b.x - a.x, 2) + pow(b.y - a.y, 2) + pow(b.z - a.z, 2))
+
+        func lerp(from: SIMD3<Float>, to: SIMD3<Float>, t: Float) -> SIMD3<Float> {
+            return from + (to - from) * t
         }
+
 
 
 

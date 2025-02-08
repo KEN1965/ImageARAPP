@@ -9,6 +9,8 @@ struct ARViewScreen: View {
     @State private var rotationAngle: Float = 0.0 // 回転角度を管理
     @State private var isPhotoMode: Bool = true // モード管理（Photo / Video）
     @State private var isFixed: Bool = false // 固定状態管理
+    @State private var showExplanation = false // 吹き出しを表示するための変数
+
     
     var body: some View {
         ZStack {
@@ -23,27 +25,26 @@ struct ARViewScreen: View {
                         isPhotoMode = true
                     }) {
                         Text("Photo")
-                            .foregroundColor(isPhotoMode ? .green : .white) // Photoモード時は緑色
+                            .foregroundColor(.white) // Photoモード時は緑色
                             .font(.system(size: 18, weight: .bold))
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
-                            .background(isPhotoMode ? Color.black.opacity(0.5) : Color.clear)
                             .cornerRadius(10)
                     }
-                    
-                    Button(action: {
-                        isPhotoMode = false
-                    }) {
-                        Text("Video")
-                            .foregroundColor(isPhotoMode ? .white : .green) // Videoモード時は緑色
-                            .font(.system(size: 18, weight: .bold))
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(isPhotoMode ? Color.clear : Color.black.opacity(0.5))
-                            .cornerRadius(10)
-                    }
+//                    
+//                    Button(action: {
+//                        isPhotoMode = false
+//                    }) {
+//                        Text("Video")
+//                            .foregroundColor(isPhotoMode ? .white : .green) // Videoモード時は緑色
+//                            .font(.system(size: 18, weight: .bold))
+//                            .padding(.horizontal, 12)
+//                            .padding(.vertical, 6)
+//                            .background(isPhotoMode ? Color.clear : Color.black.opacity(0.5))
+//                            .cornerRadius(10)
+//                    }
                 }
-                .padding(.bottom, 20) // ボタン間隔を縮める（さらに下に寄せる）
+//                .padding(.bottom, 20) // ボタン間隔を縮める（さらに下に寄せる）
 
                 // 撮影ボタンを中央下部に配置（独立させる）
                 Button(action: {
@@ -60,24 +61,45 @@ struct ARViewScreen: View {
             }
             
             // 固定ボタン（撮影ボタンの右側50ポイントに配置）
-            VStack {
-                Spacer()
-                HStack {
+            ZStack{
+                VStack {
                     Spacer()
-                    Button(action: {
-                        isFixed.toggle()  // 固定状態の切り替え
-                    }) {
-                        Image(systemName: isFixed ? "pin.circle.fill" : "pin.circle")
-                            .resizable()
-                            .frame(width: 40, height: 40) // 固定ボタンのサイズ
-                            .foregroundColor(isFixed ? .green : .white) // 固定されている場合は緑色
-                            .padding(.leading, 50)  // 右隣に配置
+                    // 吹き出しを中央のボタンと広告の間に配置
+                    if showExplanation {
+                        Text("KEY_TITLE2")
+                            .font(.headline)
+                            .padding()
+                            .background(Color.white)
+                            .cornerRadius(10)
+                            .shadow(radius: 10)
+                            .transition(.slide)
+                            .frame(maxWidth: .infinity, alignment: .center) // 吹き出し内で中央揃え
+                            .multilineTextAlignment(.center) // テキストを中央揃え
+                            .padding(.bottom, 20) // 広告との間にスペースを追加
+                    }
+                    
+                    Spacer() // 下部のスペースを確保
+                }
+                VStack{
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            withAnimation {
+                                self.showExplanation.toggle() // 吹き出しの表示/非表示を切り替え
+                            }
+                        }) {
+                            Image(systemName: "questionmark.circle.fill")
+                                .font(.system(size: 50)) // ボタンのサイズを大きくする
+                                .foregroundColor(.black)
+                                .padding()
+                        }
                     }
                 }
-                .padding(.bottom,30) // 下部の余白調整
-                .padding(.horizontal,30)
             }
-        }
+                .padding(.bottom,10) // 下部の余白調整
+                .padding(.horizontal,10)
+            }
         .onAppear {
             requestPhotoLibraryPermission() // フォトライブラリの許可をリクエスト
         }

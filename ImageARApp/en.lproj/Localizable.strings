@@ -6,4 +6,6 @@
   
 */
 "KEY_TITLE1" = "This app is an AR app.\nSelect an image\nTap the icon to start!";
+"KEY_TITLE2" = "You can also zoom in and out and move the image.\nPNG photos can have a transparent background.\n\nLet's Enjoy AR!";
+
 
