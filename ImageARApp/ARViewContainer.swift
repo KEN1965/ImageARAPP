@@ -98,33 +98,62 @@ struct ARViewContainer: UIViewRepresentable {
 
         func addImageToARView(_ image: UIImage, in arView: ARView) {
             do {
-                // ✅ **画像の回転を修正する**
                 let correctedImage = fixImageOrientation(image)
                 
-                // ✅ **修正後の画像を保存**
-                let imageURL = saveImageToTempDirectory(correctedImage)
-                let texture = try TextureResource.load(contentsOf: imageURL)
+                // 画像処理を最適化
+                guard let cgImage = correctedImage.cgImage else {
+                    print("❌ CGImageの取得に失敗")
+                    return
+                }
+                
+                // より安定した画像処理のための設定
+                let context = CIContext(options: [
+                    .useSoftwareRenderer: false,
+                    .cacheIntermediates: true
+                ])
+                
+                let ciImage = CIImage(cgImage: cgImage)
+                guard let processedCGImage = context.createCGImage(ciImage, from: ciImage.extent, format: .RGBA8, colorSpace: CGColorSpaceCreateDeviceRGB()) else {
+                    print("❌ 画像処理に失敗")
+                    return
+                }
+                
+                // 画像の保存と読み込みを最適化
+                let processedImage = UIImage(cgImage: processedCGImage, scale: correctedImage.scale, orientation: .up)
+                let imageURL = saveImageToTempDirectory(processedImage)
+                
+                // テクスチャの読み込みを最適化
+                let textureResource = try TextureResource.load(contentsOf: imageURL)
+                
+                // マテリアルの設定を最適化
                 var material = UnlitMaterial()
-                material.color = .init(texture: MaterialParameters.Texture(texture))
-
+                material.color = .init(texture: MaterialParameters.Texture(textureResource))
+                material.blending = .transparent(opacity: .init(floatLiteral: 1.0))
+                
+                // エンティティの生成を最適化
                 let aspectRatio = Float(correctedImage.size.width / correctedImage.size.height)
                 let baseSize: Float = 0.3
                 let width: Float = aspectRatio >= 1 ? baseSize : baseSize * aspectRatio
                 let height: Float = aspectRatio < 1 ? baseSize : baseSize / aspectRatio
-
-                let plane = ModelEntity(mesh: .generatePlane(width: width, depth: height), materials: [material])
+                
+                let mesh = MeshResource.generatePlane(width: width, depth: height)
+                let plane = ModelEntity(mesh: mesh, materials: [material])
+                
+                // コリジョン設定を最適化
                 plane.generateCollisionShapes(recursive: false)
-
-                // ✅ **回転処理を削除**
-                 plane.transform.rotation = simd_quatf(angle: .pi / 2, axis: [1, 0, 0])
-
+                plane.transform.rotation = simd_quatf(angle: .pi / 2, axis: [1, 0, 0])
+                
+                // キャッシュをクリア
+                context.clearCaches()
+                
+                // エンティティを配置
                 placeEntityInFrontOfCamera(entity: plane, in: arView)
                 trackedEntity = plane
+                
             } catch {
-                print("❌ 画像のテクスチャ生成に失敗: \(error)")
+                print("❌ 画像のテクスチャ生成に失敗: \(error.localizedDescription)")
             }
         }
-
 
         private func placeEntityInFrontOfCamera(entity: ModelEntity, in arView: ARView) {
             guard let frame = arView.session.currentFrame else {
@@ -148,17 +177,21 @@ struct ARViewContainer: UIViewRepresentable {
             initialPosition = position // ✅ 最初の位置を保存（移動時に z 軸を変えないため）
         }
 
+        // 画像保存の最適化
         private func saveImageToTempDirectory(_ image: UIImage) -> URL {
             let tempDirectory = FileManager.default.temporaryDirectory
             let fileURL = tempDirectory.appendingPathComponent(UUID().uuidString + ".png")
-
+            
             if let imageData = image.pngData() {
-                try? imageData.write(to: fileURL)
+                do {
+                    try imageData.write(to: fileURL, options: .atomic)
+                } catch {
+                    print("❌ 画像の保存に失敗: \(error.localizedDescription)")
+                }
             }
-
+            
             return fileURL
         }
-
         // ✅ **ジェスチャーのセットアップ**
         func setupGestures(for arView: ARView) {
             let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePanGesture(_:)))
