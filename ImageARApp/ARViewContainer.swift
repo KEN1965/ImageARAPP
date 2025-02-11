@@ -5,13 +5,13 @@ import RealityKit
 struct ARViewContainer: UIViewRepresentable {
     @Binding var images: [UIImage]
     @Binding var rotationAngle: Float // ✅ 回転角度を管理
+    static var sharedARView: ARView? = ARView(frame: .zero)  // 共有インスタンス
+
 
     func makeUIView(context: Context) -> ARView {
-        let arView = ARView(frame: .zero)
-        startARSession(in: arView)
-        context.coordinator.arView = arView
-        context.coordinator.setupGestures(for: arView)
-        return arView
+        let arView = ARViewContainer.sharedARView ?? ARView(frame: .zero)
+                ARViewContainer.sharedARView = arView
+                return arView
     }
 
     func updateUIView(_ uiView: ARView, context: Context) {

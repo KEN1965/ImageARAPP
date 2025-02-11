@@ -1,6 +1,8 @@
 import SwiftUI
 import RealityKit
 import Photos
+import AVFoundation
+
 
 struct ARViewScreen: View {
     @Binding var isPresented: Bool
@@ -10,6 +12,7 @@ struct ARViewScreen: View {
     @State private var isPhotoMode: Bool = true // モード管理（Photo / Video）
     @State private var isFixed: Bool = false // 固定状態管理
     @State private var showExplanation = false // 吹き出しを表示するための変数
+
 
     
     var body: some View {
@@ -107,27 +110,30 @@ struct ARViewScreen: View {
 
     // 撮影ボタンを押したときの処理
     func takeScreenshot() {
-        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let window = windowScene.windows.first else {
-            print("❌ エラー: ウィンドウが取得できませんでした。")
+        guard let arView = ARViewContainer.sharedARView else {
+            print("❌ ARViewが見つかりません")
             return
         }
 
-        let size = window.bounds.size
+        playShutterSound()  // シャッター音を再生
 
-        UIGraphicsBeginImageContextWithOptions(size, false, 0)
-        window.drawHierarchy(in: CGRect(origin: .zero, size: size), afterScreenUpdates: true)
-        let screenshot = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
+        arView.snapshot(saveToHDR: false) { image in
+            guard let screenshot = image else {
+                print("❌ スクリーンショットの取得に失敗しました")
+                return
+            }
 
-        if let screenshot = screenshot {
+            // 画像をカメラロールに保存
             UIImageWriteToSavedPhotosAlbum(screenshot, nil, nil, nil)
             print("📸 スクリーンショットを保存しました！")
-            // **📌 撮影後に元の画面（ContentView）に戻る**
+
+            // **📌 撮影後に元の画面に戻る**
             isPresented = false
-        } else {
-            print("❌ スクリーンショットの取得に失敗しました。")
         }
+    }
+
+    func playShutterSound() {
+        AudioServicesPlaySystemSound(1108)  // iOS標準カメラのシャッター音
     }
 
     // フォトライブラリの許可をリクエスト
