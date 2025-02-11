@@ -94,7 +94,7 @@ struct ARViewScreen: View {
                         }) {
                             Image(systemName: "questionmark.circle.fill")
                                 .font(.system(size: 50)) // ボタンのサイズを大きくする
-                                .foregroundColor(.black)
+                                .foregroundColor(.white)
                                 .padding()
                         }
                     }
