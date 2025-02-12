@@ -10,8 +10,12 @@ struct ARViewContainer: UIViewRepresentable {
 
     func makeUIView(context: Context) -> ARView {
         let arView = ARViewContainer.sharedARView ?? ARView(frame: .zero)
-                ARViewContainer.sharedARView = arView
-                return arView
+            ARViewContainer.sharedARView = arView
+        // ✅ ここでジェスチャーをセットアップ
+        context.coordinator.arView = arView
+        context.coordinator.setupGestures(for: arView)
+        
+        return arView
     }
 
     func updateUIView(_ uiView: ARView, context: Context) {
@@ -145,10 +149,12 @@ struct ARViewContainer: UIViewRepresentable {
                 
                 // キャッシュをクリア
                 context.clearCaches()
-                
-                // エンティティを配置
-                placeEntityInFrontOfCamera(entity: plane, in: arView)
-                trackedEntity = plane
+            
+                // ✅ エンティティの位置設定
+                  placeEntityInFrontOfCamera(entity: plane, in: arView)
+                  
+                  // ✅ 移動・拡大縮小の対象エンティティとして設定
+                  trackedEntity = plane
                 
             } catch {
                 print("❌ 画像のテクスチャ生成に失敗: \(error.localizedDescription)")
